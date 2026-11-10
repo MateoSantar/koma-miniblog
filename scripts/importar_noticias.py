@@ -1,8 +1,3 @@
-"""Trae las últimas noticias de MyAnimeList (RSS oficial) y las publica en el blog.
-
-Uso:  .venv\\Scripts\\python scripts\\importar_noticias.py
-Variables opcionales: BLOG_URL, BLOG_USER, BLOG_PASSWORD, MAX_NOTICIAS.
-"""
 import html
 import os
 import re
@@ -25,12 +20,12 @@ MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio",
 
 ETIQUETAS = [
     (r"live[- ]action", "live-action"),
-    (r"\bmovies?\b|\bfilm\b", "peliculas"),
+    (r"\bmovies?\b|\bfilm\b", "películas"),
     (r"tv anime|anime adaptation|anime series|season", "anime"),
     (r"\bmanga\b", "manga"),
     (r"\bcast\b|\bstaff\b", "reparto"),
     (r"promo|trailer|teaser|\bpv\b", "trailer"),
-    (r"theme|song|opening|ending|music", "musica"),
+    (r"theme|song|opening|ending|music", "música"),
     (r"\bgames?\b", "videojuegos"),
     (r"award|ranking|poll", "rankings"),
 ]

@@ -1,6 +1,7 @@
 from typing import Optional, List, Union, Literal, Annotated
-from pydantic import BaseModel, Field, field_validator, EmailStr, ConfigDict
+from pydantic import BaseModel, Field, field_validator, EmailStr, ConfigDict, ValidationError
 from fastapi import Form
+from fastapi.exceptions import RequestValidationError
 
 
 class Tag(BaseModel):
@@ -57,8 +58,11 @@ class PostCreate(BaseModel):
         content: Annotated[str, Form(min_length=10)],
         tags: Annotated[Optional[List[str]], Form()] = None,
     ):
-        tag_objs = [Tag(name=t) for t in (tags or [])]
-        return cls(title=title, content=content, tags=tag_objs)
+        try:
+            tag_objs = [Tag(name=t) for t in (tags or [])]
+            return cls(title=title, content=content, tags=tag_objs)
+        except ValidationError as error:
+            raise RequestValidationError(error.errors(include_url=False, include_context=False))
 
 
 class PostUpdate(BaseModel):
