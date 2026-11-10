@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Koma — anime y manga</title>
+<title>Koma, noticias de anime y manga</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Zen+Kaku+Gothic+New:wght@400;700;900&display=swap" rel="stylesheet">
@@ -31,6 +31,9 @@
   }
   button, input, textarea, select { font: inherit; color: inherit; }
   :focus-visible { outline: 3px solid var(--beni); outline-offset: 3px; }
+  button, select, summary, label[for], input[type="file"], [role="button"] { cursor: pointer; }
+  button:disabled, select:disabled { cursor: not-allowed; }
+  .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 
   .trama {
     background-image: radial-gradient(var(--trama) 1.1px, transparent 1.4px);
@@ -98,10 +101,11 @@
     border: var(--borde) solid var(--tinta);
     background: var(--papel);
     padding: 11px 16px;
-    cursor: pointer;
+    min-height: 44px;
     transition: transform .08s ease, box-shadow .08s ease;
   }
   .boton:hover { background: var(--tinta); color: var(--papel); }
+  .boton:active { transform: translate(1px, 1px); }
   .boton.accion {
     background: var(--beni);
     border-color: var(--tinta);
@@ -142,19 +146,24 @@
     position: relative;
     border: var(--borde) solid var(--tinta);
     background: var(--papel);
-    text-align: left;
-    padding: 0;
-    cursor: pointer;
     display: flex;
     flex-direction: column;
     overflow: hidden;
     grid-column: span 2;
   }
+  .koma-abrir {
+    all: unset;
+    cursor: pointer;
+  }
+  .koma-abrir::after { content: ""; position: absolute; inset: 0; z-index: 1; }
+  .koma:has(.koma-abrir:focus-visible) { outline: 3px solid var(--beni); outline-offset: 3px; }
+  .koma-abrir:focus-visible { outline: none; }
+  .koma .etiquetas { position: relative; z-index: 2; }
   .koma:nth-child(7n+1) { grid-column: span 4; grid-row: span 2; }
   .koma:nth-child(7n+4), .koma:nth-child(7n+5) { grid-column: span 3; }
   .koma:nth-child(7n+7) { grid-column: span 4; }
   .koma:hover .koma-titulo { text-decoration: underline; text-decoration-thickness: 3px; text-underline-offset: 5px; }
-  .koma:focus-visible { outline-offset: -8px; }
+  .koma:active .koma-titulo { color: var(--beni); }
 
   .koma-img {
     position: relative;
@@ -198,17 +207,19 @@
   }
   .koma-autor { font-size: 13px; font-weight: 700; }
 
-  .etiquetas { display: flex; flex-wrap: wrap; gap: 6px; }
+  .etiquetas { display: flex; flex-wrap: wrap; gap: 8px; }
   .etiqueta {
-    font: 700 12px/1 var(--texto);
+    position: relative;
+    font: 700 13px/1 var(--texto);
     background: var(--tinta);
     color: var(--papel);
     border: 0;
-    padding: 6px 8px;
-    cursor: pointer;
+    padding: 8px 10px;
     letter-spacing: .02em;
   }
+  .etiqueta::before { content: ""; position: absolute; inset: -8px -4px; }
   .etiqueta:hover { background: var(--beni); }
+  .etiqueta:active { transform: translate(1px, 1px); }
   .filtro-activo { background: var(--tinta); color: var(--papel); padding: 4px 10px; }
 
   mark { background: none; color: var(--beni); box-shadow: inset 0 -.18em 0 var(--beni); }
@@ -269,7 +280,6 @@
     font-weight: 700;
     font-size: 15px;
     margin: 0 0 24px;
-    box-shadow: 4px 4px 0 var(--tinta);
   }
   .cuerpo { max-width: 64ch; }
   .cuerpo p { margin: 0 0 1.1em; }
@@ -312,6 +322,20 @@
   }
   .aviso.visible { transform: translate(-50%, 0); visibility: visible; }
 
+  .pie-pagina {
+    border-top: var(--borde) solid var(--tinta);
+    padding: 20px clamp(16px, 4vw, 40px) 28px;
+    font-size: 14px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 8px 24px;
+  }
+  .pie-pagina p { margin: 0; }
+  .pie-pagina a { color: var(--tinta); font-weight: 700; text-decoration-color: var(--beni); text-decoration-thickness: 2px; text-underline-offset: 3px; }
+  .pie-pagina a:hover { color: var(--beni); }
+  .pagina-manga[aria-busy="true"] { opacity: .5; }
+
   @media (max-width: 900px) {
     .pagina-manga { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .koma, .koma:nth-child(n) { grid-column: span 1; grid-row: auto; }
@@ -335,7 +359,7 @@
   <span class="kana" aria-hidden="true"><span>コ</span><span>マ</span></span>
   <div class="marca">
     <h1>KOMA</h1>
-    <p>Reseñas, teorías y recomendaciones de anime y manga</p>
+    <p>Noticias y reseñas de anime y manga</p>
   </div>
   <div class="sesion">
     <span class="usuario" id="usuario"></span>
@@ -350,11 +374,12 @@
     <select id="orden" aria-label="Ordenar">
       <option value="id:desc">Más nuevos</option>
       <option value="id:asc">Más viejos</option>
-      <option value="title:asc">Título A–Z</option>
-      <option value="title:desc">Título Z–A</option>
+      <option value="title:asc">Título, de la A a la Z</option>
+      <option value="title:desc">Título, de la Z a la A</option>
     </select>
   </div>
   <div class="estado" id="estado" aria-live="polite"></div>
+  <h2 class="sr-only">Posts</h2>
   <section class="pagina-manga" id="lista" aria-label="Posts"></section>
   <nav class="paginas" id="paginas" aria-label="Páginas">
     <button class="boton" id="anterior">Anterior</button>
@@ -362,6 +387,11 @@
     <button class="boton" id="siguiente">Siguiente</button>
   </nav>
 </main>
+
+<footer class="pie-pagina">
+  <p>Las noticias salen del <a href="https://myanimelist.net/news" target="_blank" rel="noopener noreferrer">feed de noticias de MyAnimeList</a> y se actualizan cada 30 minutos.</p>
+  <p>Trabajo práctico de Desarrollo de sistemas Web, hecho sobre el mini blog con FastAPI.</p>
+</footer>
 
 <dialog class="lector" id="dlgLector" aria-label="Post">
   <div class="lector-cerrar"><button class="boton" id="cerrarLector">Cerrar</button></div>
@@ -467,23 +497,24 @@ const vacio = () => {
   return caja;
 };
 
-const koma = (post) => {
-  const tarjeta = el("article", { className: "koma", tabIndex: 0 },
+const imagenKoma = (post, principal) => el("img", principal
+  ? { src: post.image_url, alt: "", width: 800, height: 450, fetchPriority: "high" }
+  : { src: post.image_url, alt: "", width: 800, height: 450, loading: "lazy" });
+
+const koma = (post, indice) => {
+  const abrir = el("button", { className: "koma-abrir", type: "button" }, resaltar(post.title, estado.busqueda));
+  abrir.addEventListener("click", () => abrirPost(post.id));
+  return el("article", { className: "koma" },
     post.image_url
-      ? el("div", { className: "koma-img" }, conAviso(el("img", { src: post.image_url, alt: "", loading: "lazy", width: 800, height: 450 })))
+      ? el("div", { className: "koma-img" }, conAviso(imagenKoma(post, indice === 0)))
       : el("div", { className: "koma-sin-img trama" }),
     el("div", { className: "koma-texto" },
       etiquetas(post),
-      el("h3", { className: "koma-titulo" }, resaltar(post.title, estado.busqueda)),
+      el("h3", { className: "koma-titulo" }, abrir),
       el("p", { className: "koma-resumen", textContent: post.content }),
       post.author ? el("span", { className: "koma-autor", textContent: `por ${post.author.name}` }) : null,
     ),
   );
-  tarjeta.setAttribute("role", "button");
-  tarjeta.setAttribute("aria-label", `Leer ${post.title}`);
-  tarjeta.addEventListener("click", () => abrirPost(post.id));
-  tarjeta.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); abrirPost(post.id); } });
-  return tarjeta;
 };
 
 const sinImagen = (img) => img.addEventListener("error", () => {
@@ -496,12 +527,14 @@ const renderLista = (posts) => $("lista").replaceChildren(...(posts.length ? pos
 
 const cargar = async () => {
   const [ordenarPor, direccion] = $("orden").value.split(":");
+  $("lista").setAttribute("aria-busy", "true");
+  if (!$("lista").children.length) $("estado").textContent = "Cargando posts…";
   try {
     if (estado.etiqueta) {
       const posts = await api(`/posts/by-tags?tags=${encodeURIComponent(estado.etiqueta)}`);
       const quitar = el("button", { className: "boton suave", type: "button", textContent: "Quitar filtro" });
       quitar.addEventListener("click", () => { estado.etiqueta = null; cargar(); });
-      $("estado").replaceChildren(`${posts.length} ${posts.length === 1 ? "post" : "posts"} con`, el("span", { className: "filtro-activo", textContent: estado.etiqueta }), quitar);
+      $("estado").replaceChildren(`${posts.length} ${posts.length === 1 ? "post" : "posts"} con la etiqueta `, el("span", { className: "filtro-activo", textContent: estado.etiqueta }), " ", quitar);
       $("paginas").hidden = true;
       renderLista(posts);
       return;
@@ -517,7 +550,9 @@ const cargar = async () => {
     $("siguiente").disabled = !datos.has_next;
     renderLista(datos.items);
   } catch (e) {
-    $("estado").textContent = `No se pudo cargar la lista: ${e.message}. Revisá que la API esté corriendo.`;
+    $("estado").textContent = `No se pudo cargar la lista: ${e.message}. Revisá que la API esté corriendo y recargá la página.`;
+  } finally {
+    $("lista").removeAttribute("aria-busy");
   }
 };
 
@@ -528,8 +563,10 @@ const filtrarPorEtiqueta = (nombre) => {
   cargar();
 };
 
+const dominio = (url) => { try { return new URL(url).hostname.replace(/^www\./, ""); } catch { return url; } };
+
 const conEnlaces = (texto) => texto.split(/(https?:\/\/[^\s]+)/g).map((parte, i) =>
-  i % 2 ? el("a", { href: parte, textContent: new URL(parte).hostname.replace(/^www\./, ""), target: "_blank", rel: "noopener noreferrer" }) : parte);
+  i % 2 ? el("a", { href: parte, textContent: dominio(parte), target: "_blank", rel: "noopener noreferrer" }) : parte);
 
 const parrafos = (texto) => texto.split(/\n\s*\n/).map((p) => el("p", {}, conEnlaces(p.trim())));
 
@@ -665,7 +702,7 @@ $("formLogin").addEventListener("submit", async (e) => {
     const { access_token } = await r.json();
     await iniciarSesion(access_token);
     $("dlgLogin").close();
-    avisar(`Bienvenido, ${estado.usuario?.username ?? ""}`);
+    avisar(`Hola, ${estado.usuario?.username ?? ""}`);
     cargar();
   } catch (err) {
     $("errLogin").textContent = err.message;
