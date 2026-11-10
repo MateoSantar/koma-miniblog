@@ -4,7 +4,7 @@ import uuid
 from fastapi import APIRouter, File, UploadFile, HTTPException, status
 
 
-MEDIA_DIR = "app/media"
+MEDIA_DIR = os.getenv("MEDIA_DIR", "app/media")
 ALLOW_MIME = ["image/png", "image/jpeg"]
 MAX_MB = int(os.getenv("MAX_UPLOAD_MB", "3"))
 CHUNKS = 1024 * 1024

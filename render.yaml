@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: koma-miniblog
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /posts
+    autoDeployTrigger: commit
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ALUMNO_PASSWORD
+        sync: false
+      - key: CESAR_PASSWORD
+        generateValue: true
+      - key: NOTICIAS_AUTO
+        value: "1"
+      - key: NOTICIAS_INTERVALO_MIN
+        value: "30"
