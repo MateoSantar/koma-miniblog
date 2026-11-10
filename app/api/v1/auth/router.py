@@ -1,3 +1,4 @@
+import os
 from datetime import timedelta
 from fastapi import APIRouter, Depends, HTTPException, status
 from .schemas import Token, UserPublic
@@ -5,8 +6,8 @@ from fastapi.security import OAuth2PasswordRequestForm
 from app.core.security import create_access_token, get_current_user
 
 FAKE_USERS = {
-    "cesar@example.com": {"email": "cesar@example.com", "username": "cesar", "password": "secret123"},
-    "alumno@example.com":  {"email": "alumno@example.com",  "username": "alumno",  "password": "123456"},
+    "cesar@example.com": {"email": "cesar@example.com", "username": "cesar", "password": os.getenv("CESAR_PASSWORD", "secret123")},
+    "alumno@example.com":  {"email": "alumno@example.com",  "username": "alumno",  "password": os.getenv("ALUMNO_PASSWORD", "123456")},
 }
 
 router = APIRouter(prefix="/auth", tags=["auth"])
