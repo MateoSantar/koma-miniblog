@@ -1,0 +1,704 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Koma — anime y manga</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Zen+Kaku+Gothic+New:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --papel: #ffffff;
+    --tinta: #000000;
+    --gris: #4a4a4a;
+    --trama: #000000;
+    --beni: #e60033;
+    --calle: 12px;
+    --borde: 3px;
+    --titulo: "Dela Gothic One", "Zen Kaku Gothic New", system-ui, sans-serif;
+    --texto: "Zen Kaku Gothic New", system-ui, sans-serif;
+    color-scheme: light;
+  }
+
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  body {
+    margin: 0;
+    background: var(--papel);
+    color: var(--tinta);
+    font: 400 17px/1.75 var(--texto);
+  }
+  button, input, textarea, select { font: inherit; color: inherit; }
+  :focus-visible { outline: 3px solid var(--beni); outline-offset: 3px; }
+
+  .trama {
+    background-image: radial-gradient(var(--trama) 1.1px, transparent 1.4px);
+    background-size: 7px 7px;
+  }
+
+  .cabecera {
+    position: relative;
+    overflow: hidden;
+    border-bottom: var(--borde) solid var(--tinta);
+    padding: clamp(28px, 6vw, 64px) clamp(16px, 5vw, 56px) clamp(24px, 4vw, 40px);
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: end;
+    gap: 12px 24px;
+  }
+  .cabecera::before {
+    content: "";
+    position: absolute;
+    inset: -40%;
+    background: repeating-conic-gradient(from 0deg at 28% 62%, var(--tinta) 0deg .7deg, transparent .7deg 5deg);
+    -webkit-mask: radial-gradient(ellipse 34% 48% at 28% 62%, transparent 55%, #000 100%);
+            mask: radial-gradient(ellipse 34% 48% at 28% 62%, transparent 55%, #000 100%);
+    opacity: .9;
+    pointer-events: none;
+  }
+  .cabecera > * { position: relative; }
+  .kana {
+    display: flex;
+    flex-direction: column;
+    gap: .1em;
+    font: 400 clamp(22px, 3vw, 34px)/1 var(--titulo);
+    background: var(--papel);
+    padding: 6px 2px;
+    align-self: center;
+  }
+  .marca h1 {
+    font: 400 clamp(64px, 13vw, 150px)/.82 var(--titulo);
+    margin: 0;
+    letter-spacing: -.02em;
+    background: var(--papel);
+    display: inline-block;
+    padding: 0 .08em .06em;
+  }
+  .marca p {
+    margin: 10px 0 0;
+    font-weight: 700;
+    background: var(--papel);
+    display: inline-block;
+    padding: 2px 8px;
+    border: 2px solid var(--tinta);
+  }
+  .sesion {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    align-self: start;
+    background: var(--papel);
+    padding: 6px;
+  }
+  .usuario { font-weight: 700; font-size: 15px; }
+
+  .boton {
+    font: 700 15px/1 var(--texto);
+    border: var(--borde) solid var(--tinta);
+    background: var(--papel);
+    padding: 11px 16px;
+    cursor: pointer;
+    transition: transform .08s ease, box-shadow .08s ease;
+  }
+  .boton:hover { background: var(--tinta); color: var(--papel); }
+  .boton.accion {
+    background: var(--beni);
+    border-color: var(--tinta);
+    color: #fff;
+    box-shadow: 4px 4px 0 var(--tinta);
+  }
+  .boton.accion:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 var(--tinta); background: var(--beni); }
+  .boton.accion:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--tinta); }
+  .boton.suave { border-color: transparent; text-decoration: underline; text-underline-offset: 4px; padding: 11px 6px; }
+  .boton.suave:hover { background: transparent; color: var(--beni); }
+  .boton.peligro:hover { background: var(--beni); border-color: var(--beni); }
+  .boton:disabled { opacity: .3; cursor: not-allowed; }
+  .boton:disabled:hover { background: var(--papel); color: var(--tinta); }
+
+  main { max-width: 1240px; margin: 0 auto; padding: 24px clamp(16px, 4vw, 40px) 72px; }
+
+  .herramientas { display: flex; flex-wrap: wrap; gap: 10px; align-items: stretch; }
+  .herramientas input, .herramientas select {
+    border: var(--borde) solid var(--tinta);
+    background: var(--papel);
+    padding: 10px 14px;
+    border-radius: 0;
+  }
+  .herramientas input { flex: 1 1 260px; font-weight: 700; }
+  .herramientas input::placeholder { color: var(--gris); font-weight: 400; }
+  .estado { min-height: 1.7em; margin: 12px 0 16px; font-weight: 700; font-size: 15px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+
+  .pagina-manga {
+    border: var(--borde) solid var(--tinta);
+    padding: var(--calle);
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    grid-auto-rows: minmax(150px, auto);
+    gap: var(--calle);
+    background: var(--papel);
+  }
+  .koma {
+    position: relative;
+    border: var(--borde) solid var(--tinta);
+    background: var(--papel);
+    text-align: left;
+    padding: 0;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    grid-column: span 2;
+  }
+  .koma:nth-child(7n+1) { grid-column: span 4; grid-row: span 2; }
+  .koma:nth-child(7n+4), .koma:nth-child(7n+5) { grid-column: span 3; }
+  .koma:nth-child(7n+7) { grid-column: span 4; }
+  .koma:hover .koma-titulo { text-decoration: underline; text-decoration-thickness: 3px; text-underline-offset: 5px; }
+  .koma:focus-visible { outline-offset: -8px; }
+
+  .koma-img {
+    position: relative;
+    flex: 1 1 auto;
+    min-height: 140px;
+    max-height: 240px;
+    border-bottom: var(--borde) solid var(--tinta);
+    overflow: hidden;
+  }
+  .koma:nth-child(7n+1) .koma-img { max-height: 460px; }
+  .koma-img img { width: 100%; height: 100%; max-height: inherit; object-fit: cover; object-position: center 20%; display: block; filter: grayscale(1) contrast(1.15); }
+  .koma-img::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(rgba(0,0,0,.35) 1px, transparent 1.4px);
+    background-size: 5px 5px;
+    mix-blend-mode: multiply;
+  }
+  .koma-texto { padding: 14px 16px 16px; display: grid; gap: 6px; }
+  .koma:nth-child(7n+1) .koma-texto { padding: 18px 22px 24px; }
+  .koma-titulo { font: 400 22px/1.15 var(--titulo); margin: 0; }
+  .koma:nth-child(7n+1) .koma-titulo { font-size: clamp(28px, 3.2vw, 42px); }
+  .koma-resumen {
+    margin: 0;
+    color: var(--gris);
+    font-size: 15px;
+    line-height: 1.6;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .koma-sin-img { flex: 1 0 28px; border-bottom: var(--borde) solid var(--tinta); }
+  .koma:nth-child(7n+1) .koma-sin-img {
+    flex: 1 1 auto;
+    min-height: 180px;
+    background: repeating-conic-gradient(from 0deg at 50% 55%, var(--tinta) 0deg .8deg, transparent .8deg 6deg);
+    -webkit-mask: radial-gradient(ellipse 60% 55% at 50% 55%, transparent 30%, #000 75%);
+            mask: radial-gradient(ellipse 60% 55% at 50% 55%, transparent 30%, #000 75%);
+  }
+  .koma-autor { font-size: 13px; font-weight: 700; }
+
+  .etiquetas { display: flex; flex-wrap: wrap; gap: 6px; }
+  .etiqueta {
+    font: 700 12px/1 var(--texto);
+    background: var(--tinta);
+    color: var(--papel);
+    border: 0;
+    padding: 6px 8px;
+    cursor: pointer;
+    letter-spacing: .02em;
+  }
+  .etiqueta:hover { background: var(--beni); }
+  .filtro-activo { background: var(--tinta); color: var(--papel); padding: 4px 10px; }
+
+  mark { background: none; color: var(--beni); box-shadow: inset 0 -.18em 0 var(--beni); }
+
+  .vacio {
+    grid-column: 1 / -1;
+    border: var(--borde) solid var(--tinta);
+    min-height: 340px;
+    display: grid;
+    place-content: center;
+    text-align: center;
+    padding: 32px;
+    position: relative;
+  }
+  .vacio .sfx { font: 400 clamp(56px, 10vw, 110px)/1 var(--titulo); margin: 0; background: var(--papel); padding: 0 .2em; }
+  .vacio p { margin: 8px auto 0; max-width: 40ch; font-weight: 700; background: var(--papel); padding: 4px 10px; }
+  .vacio .boton { margin: 18px auto 0; }
+
+  .paginas { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 18px; font-weight: 700; }
+
+  dialog {
+    border: var(--borde) solid var(--tinta);
+    border-radius: 0;
+    padding: 0;
+    background: var(--papel);
+    color: var(--tinta);
+    box-shadow: 10px 10px 0 var(--tinta);
+    max-height: calc(100dvh - 48px);
+  }
+  dialog[open] { animation: impacto .18s ease-out; }
+  @keyframes impacto { from { transform: scale(.94); opacity: 0; } to { transform: none; opacity: 1; } }
+  dialog::backdrop {
+    background-color: rgba(255, 255, 255, .78);
+    background-image: radial-gradient(rgba(0,0,0,.55) 1px, transparent 1.4px);
+    background-size: 6px 6px;
+  }
+
+  .lector { width: min(780px, calc(100vw - 32px)); }
+  .lector-cerrar { position: sticky; top: 0; display: flex; justify-content: flex-end; padding: 10px; z-index: 1; pointer-events: none; }
+  .lector-cerrar .boton { pointer-events: auto; }
+  .lector-contenido { padding: 0 clamp(20px, 5vw, 48px) 40px; margin-top: -54px; }
+  .lector img {
+    display: block;
+    width: calc(100% + 2 * clamp(20px, 5vw, 48px));
+    margin: 0 calc(-1 * clamp(20px, 5vw, 48px)) 24px;
+    max-height: 360px;
+    object-fit: cover;
+    object-position: center 20%;
+    border-bottom: var(--borde) solid var(--tinta);
+    filter: grayscale(.15) contrast(1.05);
+  }
+  .lector-contenido.sin-img { padding-top: 64px; }
+  .lector h2 { font: 400 clamp(26px, 3.6vw, 38px)/1.12 var(--titulo); margin: 12px 0 14px; text-wrap: balance; }
+  .narracion {
+    display: inline-block;
+    border: var(--borde) solid var(--tinta);
+    padding: 6px 14px;
+    font-weight: 700;
+    font-size: 15px;
+    margin: 0 0 24px;
+    box-shadow: 4px 4px 0 var(--tinta);
+  }
+  .cuerpo { max-width: 64ch; }
+  .cuerpo p { margin: 0 0 1.1em; }
+  .cuerpo a { color: var(--tinta); font-weight: 700; text-decoration-color: var(--beni); text-decoration-thickness: 3px; text-underline-offset: 3px; }
+  .cuerpo a:hover { color: var(--beni); }
+  .acciones { display: flex; gap: 10px; margin-top: 28px; padding-top: 20px; border-top: var(--borde) solid var(--tinta); }
+
+  .formulario { width: min(580px, calc(100vw - 32px)); }
+  .formulario form { padding: 28px; display: grid; gap: 14px; }
+  .formulario h2 { font: 400 32px/1.1 var(--titulo); margin: 0; }
+  label { font-weight: 900; font-size: 14px; display: grid; gap: 6px; }
+  label small { font-weight: 400; color: var(--gris); }
+  .formulario input, .formulario textarea {
+    width: 100%;
+    border: var(--borde) solid var(--tinta);
+    border-radius: 0;
+    background: var(--papel);
+    padding: 10px 12px;
+    font-weight: 400;
+  }
+  .formulario textarea { min-height: 190px; resize: vertical; }
+  .formulario input:focus, .formulario textarea:focus { outline: none; box-shadow: 4px 4px 0 var(--beni); }
+  .pie { display: flex; justify-content: flex-end; gap: 10px; margin-top: 4px; }
+  .error { color: var(--beni); font-weight: 700; font-size: 14px; margin: 0; min-height: 1.3em; }
+  .pista { font-size: 13px; color: var(--gris); margin: 0; }
+
+  .aviso {
+    position: fixed;
+    left: 50%;
+    bottom: 24px;
+    transform: translate(-50%, calc(100% + 40px));
+    visibility: hidden;
+    background: var(--papel);
+    border: var(--borde) solid var(--tinta);
+    box-shadow: 4px 4px 0 var(--tinta);
+    font-weight: 900;
+    padding: 12px 22px;
+    transition: transform .2s ease, visibility .2s;
+    z-index: 10;
+  }
+  .aviso.visible { transform: translate(-50%, 0); visibility: visible; }
+
+  @media (max-width: 900px) {
+    .pagina-manga { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .koma, .koma:nth-child(n) { grid-column: span 1; grid-row: auto; }
+    .koma:nth-child(3n+1) { grid-column: span 2; }
+  }
+  @media (max-width: 620px) {
+    .cabecera { grid-template-columns: auto 1fr; }
+    .sesion { grid-column: 1 / -1; grid-row: 1; justify-self: end; }
+    .pagina-manga { grid-template-columns: 1fr; }
+    .koma:nth-child(n) { grid-column: auto; }
+    .usuario { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    dialog[open] { animation: none; }
+    .aviso, .boton { transition: none; }
+  }
+</style>
+</head>
+<body>
+<header class="cabecera">
+  <span class="kana" aria-hidden="true"><span>コ</span><span>マ</span></span>
+  <div class="marca">
+    <h1>KOMA</h1>
+    <p>Reseñas, teorías y recomendaciones de anime y manga</p>
+  </div>
+  <div class="sesion">
+    <span class="usuario" id="usuario"></span>
+    <button class="boton accion" id="nuevo" hidden>Escribir post</button>
+    <button class="boton" id="sesion">Ingresar</button>
+  </div>
+</header>
+
+<main>
+  <div class="herramientas">
+    <input id="buscar" type="search" placeholder="Buscar por título: One Piece, Frieren, Chainsaw Man…" aria-label="Buscar por título" maxlength="50">
+    <select id="orden" aria-label="Ordenar">
+      <option value="id:desc">Más nuevos</option>
+      <option value="id:asc">Más viejos</option>
+      <option value="title:asc">Título A–Z</option>
+      <option value="title:desc">Título Z–A</option>
+    </select>
+  </div>
+  <div class="estado" id="estado" aria-live="polite"></div>
+  <section class="pagina-manga" id="lista" aria-label="Posts"></section>
+  <nav class="paginas" id="paginas" aria-label="Páginas">
+    <button class="boton" id="anterior">Anterior</button>
+    <span id="pagina"></span>
+    <button class="boton" id="siguiente">Siguiente</button>
+  </nav>
+</main>
+
+<dialog class="lector" id="dlgLector" aria-label="Post">
+  <div class="lector-cerrar"><button class="boton" id="cerrarLector">Cerrar</button></div>
+  <div class="lector-contenido" id="lector"></div>
+</dialog>
+
+<dialog class="formulario" id="dlgLogin">
+  <form method="dialog" id="formLogin">
+    <h2>Ingresar</h2>
+    <label>Email <input name="username" type="email" required autocomplete="username"></label>
+    <label>Contraseña <input name="password" type="password" required autocomplete="current-password"></label>
+    <p class="pista">Usuario de prueba de la API: alumno@example.com / 123456</p>
+    <p class="error" id="errLogin"></p>
+    <div class="pie">
+      <button class="boton suave" value="cancel" formnovalidate>Cancelar</button>
+      <button class="boton accion" value="ok">Ingresar</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog class="formulario" id="dlgPost">
+  <form method="dialog" id="formPost">
+    <h2 id="tituloForm">Nuevo post</h2>
+    <label>Título <input name="title" required minlength="3" maxlength="100" placeholder="Qué serie o qué tema"></label>
+    <label>Contenido <textarea name="content" required minlength="10" placeholder="Tu reseña, teoría o recomendación. Dejá una línea en blanco entre párrafos."></textarea></label>
+    <label class="soloCrear">Etiquetas <small>separadas por coma, de 2 a 30 letras</small><input name="tags" placeholder="shonen, reseña, temporada"></label>
+    <label class="soloCrear">Imagen <small>PNG o JPEG, hasta 3 MB</small><input name="image" type="file" accept="image/png,image/jpeg"></label>
+    <p class="error" id="errPost"></p>
+    <div class="pie">
+      <button class="boton suave" value="cancel" formnovalidate>Cancelar</button>
+      <button class="boton accion" value="ok" id="guardar">Publicar</button>
+    </div>
+  </form>
+</dialog>
+
+<div class="aviso" id="aviso" role="status"></div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const estado = { pagina: 1, porPagina: 7, busqueda: "", etiqueta: null, abierto: null, editando: null, token: null, usuario: null };
+
+const guardarToken = (t) => { try { t ? sessionStorage.setItem("koma-token", t) : sessionStorage.removeItem("koma-token"); } catch {} };
+const leerToken = () => { try { return sessionStorage.getItem("koma-token"); } catch { return null; } };
+
+const el = (tag, props = {}, ...hijos) => {
+  const nodo = Object.assign(document.createElement(tag), props);
+  hijos.flat().forEach((h) => h != null && nodo.append(h));
+  return nodo;
+};
+
+const mensajeDeError = async (r) => {
+  const cuerpo = await r.json().catch(() => null);
+  const detalle = cuerpo?.detail;
+  if (Array.isArray(detalle)) return detalle.map((d) => `${d.loc?.at(-1) ?? "dato"}: ${d.msg}`).join(". ");
+  return detalle || `La API respondió ${r.status}`;
+};
+
+const api = async (ruta, opciones = {}) => {
+  const headers = { ...(opciones.headers || {}) };
+  if (estado.token) headers.Authorization = `Bearer ${estado.token}`;
+  const r = await fetch(ruta, { ...opciones, headers });
+  if (r.status === 401 && estado.token) cerrarSesion("Tu sesión venció. Volvé a ingresar.");
+  if (!r.ok) throw new Error(await mensajeDeError(r));
+  return r.status === 204 ? null : r.json();
+};
+
+const avisar = (texto) => {
+  const a = $("aviso");
+  a.textContent = texto;
+  a.classList.add("visible");
+  clearTimeout(avisar.t);
+  avisar.t = setTimeout(() => a.classList.remove("visible"), 2600);
+};
+
+const resaltar = (texto, busqueda) => {
+  if (!busqueda) return [texto];
+  const i = texto.toLowerCase().indexOf(busqueda.toLowerCase());
+  if (i < 0) return [texto];
+  return [texto.slice(0, i), el("mark", { textContent: texto.slice(i, i + busqueda.length) }), texto.slice(i + busqueda.length)];
+};
+
+const botonEtiqueta = (nombre) => {
+  const b = el("button", { className: "etiqueta", type: "button", textContent: nombre, title: `Ver posts con ${nombre}` });
+  b.addEventListener("click", (e) => { e.stopPropagation(); $("dlgLector").close(); filtrarPorEtiqueta(nombre); });
+  return b;
+};
+
+const conAviso = (img) => (sinImagen(img), img);
+
+const etiquetas = (post) => post.tags?.length ? el("div", { className: "etiquetas" }, post.tags.map((t) => botonEtiqueta(t.name))) : null;
+
+const vacio = () => {
+  const filtrado = estado.busqueda || estado.etiqueta;
+  const caja = el("div", { className: "vacio trama" },
+    el("p", { className: "sfx", textContent: "シーン…" }),
+    el("p", { textContent: filtrado ? "Ningún título coincide. Probá con otra palabra o quitá el filtro." : estado.token ? "Silencio total: todavía no hay posts. Escribí el primero." : "Silencio total: todavía no hay posts. Ingresá para escribir el primero." }),
+  );
+  if (!filtrado) {
+    const b = el("button", { className: "boton accion", type: "button", textContent: estado.token ? "Escribir post" : "Ingresar" });
+    b.addEventListener("click", () => (estado.token ? abrirFormulario() : $("sesion").click()));
+    caja.append(b);
+  }
+  return caja;
+};
+
+const koma = (post) => {
+  const tarjeta = el("article", { className: "koma", tabIndex: 0 },
+    post.image_url
+      ? el("div", { className: "koma-img" }, conAviso(el("img", { src: post.image_url, alt: "", loading: "lazy", width: 800, height: 450 })))
+      : el("div", { className: "koma-sin-img trama" }),
+    el("div", { className: "koma-texto" },
+      etiquetas(post),
+      el("h3", { className: "koma-titulo" }, resaltar(post.title, estado.busqueda)),
+      el("p", { className: "koma-resumen", textContent: post.content }),
+      post.author ? el("span", { className: "koma-autor", textContent: `por ${post.author.name}` }) : null,
+    ),
+  );
+  tarjeta.setAttribute("role", "button");
+  tarjeta.setAttribute("aria-label", `Leer ${post.title}`);
+  tarjeta.addEventListener("click", () => abrirPost(post.id));
+  tarjeta.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); abrirPost(post.id); } });
+  return tarjeta;
+};
+
+const sinImagen = (img) => img.addEventListener("error", () => {
+  const caja = img.closest(".koma-img");
+  if (caja) caja.replaceWith(el("div", { className: "koma-sin-img trama" }));
+  else { img.remove(); $("lector").classList.add("sin-img"); }
+});
+
+const renderLista = (posts) => $("lista").replaceChildren(...(posts.length ? posts.map(koma) : [vacio()]));
+
+const cargar = async () => {
+  const [ordenarPor, direccion] = $("orden").value.split(":");
+  try {
+    if (estado.etiqueta) {
+      const posts = await api(`/posts/by-tags?tags=${encodeURIComponent(estado.etiqueta)}`);
+      const quitar = el("button", { className: "boton suave", type: "button", textContent: "Quitar filtro" });
+      quitar.addEventListener("click", () => { estado.etiqueta = null; cargar(); });
+      $("estado").replaceChildren(`${posts.length} ${posts.length === 1 ? "post" : "posts"} con`, el("span", { className: "filtro-activo", textContent: estado.etiqueta }), quitar);
+      $("paginas").hidden = true;
+      renderLista(posts);
+      return;
+    }
+    const params = new URLSearchParams({ page: estado.pagina, per_page: estado.porPagina, order_by: ordenarPor, direction: direccion });
+    if (estado.busqueda) params.set("search", estado.busqueda);
+    const datos = await api(`/posts?${params}`);
+    estado.pagina = datos.page;
+    $("estado").textContent = datos.total ? (datos.total === 1 ? "1 post" : `${datos.total} posts`) : "";
+    $("paginas").hidden = datos.total_pages <= 1;
+    $("pagina").textContent = `Pág. ${datos.page} de ${datos.total_pages}`;
+    $("anterior").disabled = !datos.has_prev;
+    $("siguiente").disabled = !datos.has_next;
+    renderLista(datos.items);
+  } catch (e) {
+    $("estado").textContent = `No se pudo cargar la lista: ${e.message}. Revisá que la API esté corriendo.`;
+  }
+};
+
+const filtrarPorEtiqueta = (nombre) => {
+  estado.etiqueta = nombre;
+  $("buscar").value = "";
+  estado.busqueda = "";
+  cargar();
+};
+
+const conEnlaces = (texto) => texto.split(/(https?:\/\/[^\s]+)/g).map((parte, i) =>
+  i % 2 ? el("a", { href: parte, textContent: new URL(parte).hostname.replace(/^www\./, ""), target: "_blank", rel: "noopener noreferrer" }) : parte);
+
+const parrafos = (texto) => texto.split(/\n\s*\n/).map((p) => el("p", {}, conEnlaces(p.trim())));
+
+const abrirPost = async (id) => {
+  try {
+    const post = await api(`/posts/${id}`);
+    estado.abierto = post;
+    const lector = $("lector");
+    lector.className = `lector-contenido${post.image_url ? "" : " sin-img"}`;
+    const partes = [
+      post.image_url ? conAviso(el("img", { src: post.image_url, alt: "", width: 800, height: 420, fetchPriority: "high" })) : null,
+      etiquetas(post),
+      el("h2", { textContent: post.title }),
+      post.author ? el("div", { className: "narracion", textContent: `Lo escribió ${post.author.name}` }) : null,
+      el("div", { className: "cuerpo" }, parrafos(post.content)),
+    ];
+    if (estado.token) {
+      const editar = el("button", { className: "boton", type: "button", textContent: "Editar" });
+      const borrar = el("button", { className: "boton peligro", type: "button", textContent: "Eliminar" });
+      editar.addEventListener("click", () => { $("dlgLector").close(); abrirFormulario(post); });
+      borrar.addEventListener("click", () => eliminar(post));
+      partes.push(el("div", { className: "acciones" }, editar, borrar));
+    }
+    lector.replaceChildren(...partes.filter(Boolean));
+    if (!$("dlgLector").open) $("dlgLector").showModal();
+    $("dlgLector").scrollTop = 0;
+  } catch (e) {
+    avisar(e.message);
+  }
+};
+
+$("cerrarLector").addEventListener("click", () => $("dlgLector").close());
+$("dlgLector").addEventListener("click", (e) => { if (e.target === e.currentTarget) e.currentTarget.close(); });
+
+const eliminar = async (post) => {
+  if (!confirm(`¿Eliminar "${post.title}"? No se puede deshacer.`)) return;
+  try {
+    await api(`/posts/${post.id}`, { method: "DELETE" });
+    $("dlgLector").close();
+    avisar("Post eliminado");
+    cargar();
+  } catch (e) { avisar(e.message); }
+};
+
+const abrirFormulario = (post = null) => {
+  estado.editando = post;
+  const form = $("formPost");
+  form.reset();
+  $("errPost").textContent = "";
+  $("tituloForm").textContent = post ? "Editar post" : "Nuevo post";
+  $("guardar").textContent = post ? "Guardar cambios" : "Publicar";
+  form.querySelectorAll(".soloCrear").forEach((n) => (n.hidden = !!post));
+  if (post) { form.title.value = post.title; form.content.value = post.content; }
+  $("dlgPost").showModal();
+};
+
+$("formPost").addEventListener("submit", async (e) => {
+  if (e.submitter?.value !== "ok") return;
+  e.preventDefault();
+  const form = e.target;
+  $("errPost").textContent = "";
+  try {
+    let post;
+    if (estado.editando) {
+      post = await api(`/posts/${estado.editando.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: form.title.value.trim(), content: form.content.value.trim() }),
+      });
+      avisar("Cambios guardados");
+    } else {
+      const datos = new FormData();
+      datos.append("title", form.title.value.trim());
+      datos.append("content", form.content.value.trim());
+      form.tags.value.split(",").map((t) => t.trim()).filter(Boolean).forEach((t) => datos.append("tags", t));
+      if (form.image.files[0]) datos.append("image", form.image.files[0]);
+      post = await api("/posts", { method: "POST", body: datos });
+      avisar("Post publicado");
+    }
+    $("dlgPost").close();
+    await cargar();
+    abrirPost(post.id);
+  } catch (err) {
+    $("errPost").textContent = err.message;
+  }
+});
+
+const pintarSesion = () => {
+  $("sesion").textContent = estado.token ? "Salir" : "Ingresar";
+  $("nuevo").hidden = !estado.token;
+  $("usuario").textContent = estado.usuario ? estado.usuario.username : "";
+};
+
+const cerrarSesion = (motivo) => {
+  estado.token = null;
+  estado.usuario = null;
+  guardarToken(null);
+  pintarSesion();
+  if (motivo) avisar(motivo);
+  cargar();
+};
+
+const iniciarSesion = async (token) => {
+  estado.token = token;
+  try {
+    estado.usuario = await api("/api/v1/auth/me");
+    guardarToken(token);
+  } catch {
+    estado.token = null;
+    estado.usuario = null;
+  }
+  pintarSesion();
+};
+
+$("sesion").addEventListener("click", () => {
+  if (estado.token) return cerrarSesion("Sesión cerrada");
+  $("formLogin").reset();
+  $("errLogin").textContent = "";
+  $("dlgLogin").showModal();
+});
+
+$("formLogin").addEventListener("submit", async (e) => {
+  if (e.submitter?.value !== "ok") return;
+  e.preventDefault();
+  const form = e.target;
+  try {
+    const r = await fetch("/api/v1/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({ username: form.username.value, password: form.password.value }),
+    });
+    if (!r.ok) throw new Error(await mensajeDeError(r));
+    const { access_token } = await r.json();
+    await iniciarSesion(access_token);
+    $("dlgLogin").close();
+    avisar(`Bienvenido, ${estado.usuario?.username ?? ""}`);
+    cargar();
+  } catch (err) {
+    $("errLogin").textContent = err.message;
+  }
+});
+
+$("nuevo").addEventListener("click", () => abrirFormulario());
+
+let demora;
+$("buscar").addEventListener("input", (e) => {
+  clearTimeout(demora);
+  demora = setTimeout(() => {
+    const texto = e.target.value.trim();
+    const valido = texto.length >= 3 && /^[\w\sáéíóúÁÉÍÓÚüÜñÑ-]+$/.test(texto);
+    const nueva = valido ? texto : "";
+    if (texto && !valido) $("estado").textContent = texto.length < 3 ? "Escribí al menos 3 letras para buscar" : "Sólo letras, números, espacios y guiones";
+    if (nueva === estado.busqueda && !estado.etiqueta) return;
+    estado.busqueda = nueva;
+    estado.etiqueta = null;
+    estado.pagina = 1;
+    cargar();
+  }, 300);
+});
+$("orden").addEventListener("change", () => { estado.pagina = 1; cargar(); });
+$("anterior").addEventListener("click", () => { estado.pagina--; cargar(); window.scrollTo({ top: 0 }); });
+$("siguiente").addEventListener("click", () => { estado.pagina++; cargar(); window.scrollTo({ top: 0 }); });
+
+(async () => {
+  const guardado = leerToken();
+  if (guardado) await iniciarSesion(guardado);
+  pintarSesion();
+  cargar();
+})();
+</script>
+</body>
+</html>
