@@ -22,6 +22,7 @@ def create_app() -> FastAPI:
 
     os.makedirs(MEDIA_DIR, exist_ok=True)  # Ensure media directory exists
     app.mount("/media", StaticFiles(directory=MEDIA_DIR), name="media")
+    app.mount("/", StaticFiles(directory="app/static", html=True), name="frontend")
 
     return app
 
